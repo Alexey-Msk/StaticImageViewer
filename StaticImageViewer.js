@@ -1,9 +1,10 @@
 class StaticImageViewer
 {
     static #zoom;
-    static #zoomMode = "fitWindow";
+    static #zoomMode = "fitSize";
     static #maxZoom = 10;
     static #mouseCatchInfo = null;
+    static #scrollbarWidth;
 
 
     static get zoom()
@@ -31,12 +32,27 @@ class StaticImageViewer
         this.updateZoom();
     }
 
+    static get zoomMode()
+    {
+        return this.#zoomMode;
+    }
+
+    static set zoomMode(value)
+    {
+        if (!["manual", "fitSize", "fitWidth", "fitHeight"].includes(value))
+            throw new RangeError("Неверно указан режим масштабирования.");
+        this.#zoomMode = value;
+        if (this.#zoomMode != "manual")
+            this.#fitByCurrentMode();
+    }
+
 
     static enable()
     {
+        this.#scrollbarWidth = this.getScrollbarWidth();
         image.addEventListener("load", () => {
-            this.fitWindow();
-            window.addEventListener("resize", () => { if (this.#zoomMode == "fitWindow") this.fitWindow(); });
+            this.fitSize();
+            window.addEventListener("resize", () => this.#fitByCurrentMode());
             document.addEventListener("keydown", e => this.#handleKeyDown(e));
             imageViewer.addEventListener("wheel", e => this.#handleWheel(e));
             image.addEventListener("mousedown", e => this.#handleMouseDown(e));
@@ -46,11 +62,63 @@ class StaticImageViewer
     }
 
     /** Устанавливает масштаб изображения по высоте и ширине контейнера. */
-    static fitWindow()
+    static fitSize()
     {
-        this.#zoomMode = "fitWindow";
         this.#zoom = Math.min(imageViewer.offsetWidth / image.naturalWidth, imageViewer.offsetHeight / image.naturalHeight);
         this.updateZoom();
+    }
+
+    /** Устанавливает масштаб изображения по ширине контейнера. */
+    static fitWidth()
+    {
+        this.#zoom = imageViewer.offsetWidth / image.naturalWidth;
+        if (image.naturalHeight * this.#zoom > imageViewer.offsetHeight) {
+            this.#zoom -= this.#scrollbarWidth / image.naturalWidth;
+            if (image.naturalHeight * this.#zoom < imageViewer.offsetHeight)
+                this.#zoom = imageViewer.offsetHeight / image.naturalHeight;
+        }
+        this.updateZoom();
+    }
+
+    /** Устанавливает масштаб изображения по высоте контейнера. */
+    static fitHeight()
+    {
+        this.#zoom = imageViewer.offsetHeight / image.naturalHeight;
+        if (image.naturalWidth * this.#zoom > imageViewer.offsetWidth) {
+            this.#zoom -= this.#scrollbarWidth / image.naturalHeight;
+            if (image.naturalWidth * this.#zoom < imageViewer.offsetWidth)
+                this.#zoom = imageViewer.offsetWidth / image.naturalWidth;
+        }
+        this.updateZoom();
+    }
+
+    /** Вызывает метод установки масштаба по размеру контейнера, соответствующий текущему режиму масштабирования. */
+    static #fitByCurrentMode()
+    {
+        switch (this.#zoomMode) {
+            case "fitSize":   this.fitSize();   break;
+            case "fitWidth":  this.fitWidth();  break;
+            case "fitHeight": this.fitHeight(); break;
+        }
+    }
+
+    /** Возвращает толщину полос прокрутки. */
+    static getScrollbarWidth()
+    {
+        // Creating invisible container
+        const outer = document.createElement('div');
+        outer.style.visibility = 'hidden';
+        outer.style.overflow = 'scroll'; // forcing scrollbar to appear
+        outer.style.msOverflowStyle = 'scrollbar'; // needed for WinJS apps
+        document.body.appendChild(outer);
+        // Creating inner element and placing it in the container
+        const inner = document.createElement('div');
+        outer.appendChild(inner);
+        // Calculating difference between container's full width and the child width
+        const scrollbarWidth = (outer.offsetWidth - inner.offsetWidth);
+        // Removing temporary elements from the DOM
+        outer.parentNode.removeChild(outer);
+        return scrollbarWidth;
     }
 
     /**
@@ -134,7 +202,7 @@ class StaticImageViewer
                 this.changeZoom(1);
                 break;
             case 'NumpadMultiply':
-                this.fitWindow();
+                this.zoomMode = "fitSize";
                 break;
         }
     }
