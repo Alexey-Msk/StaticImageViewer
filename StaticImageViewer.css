@@ -1,0 +1,21 @@
+body {
+	margin: 0;
+}
+
+#imageViewer {
+	position: fixed;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	overflow: auto;
+	display: flex;
+}
+
+#imageViewer.centerHor {
+	justify-content: center;
+}
+
+#imageViewer.centerVert {
+	align-items: center;
+}
