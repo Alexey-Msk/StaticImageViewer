@@ -6,6 +6,9 @@ class StaticImageViewer
     static #mouseCatchInfo = null;
     static #scrollbarWidth;
 
+    /** Коэффициент изменения масштаба с помощью клавиатуры или мыши. Определяет скорость масштабирования. */
+    static zoomModifier = 1.1;
+
 
     static get zoom()
     {
@@ -193,10 +196,10 @@ class StaticImageViewer
         switch (e.code)
         {
             case 'NumpadAdd':
-                this.changeZoom(this.#zoom * 1.1);
+                this.changeZoom(this.#zoom * this.zoomModifier);
                 break;
             case 'NumpadSubtract':
-                this.changeZoom(this.#zoom / 1.1);
+                this.changeZoom(this.#zoom /  this.zoomModifier);
                 break;
             case 'NumpadDivide':
                 this.changeZoom(1);
@@ -209,7 +212,7 @@ class StaticImageViewer
 
     static #handleWheel(e)
     {
-        this.changeZoom(e.deltaY >= 0 ? this.#zoom / 1.2 : this.#zoom * 1.2);
+        this.changeZoom(e.deltaY >= 0 ? this.#zoom / this.zoomModifier : this.#zoom * this.zoomModifier);
         e.preventDefault();
     }
 
