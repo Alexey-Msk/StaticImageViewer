@@ -18,11 +18,6 @@ class StaticImageViewer
     static zoomModifier = 1.1;
 
 
-    static get zoom()
-    {
-        return this.#zoom;
-    }
-
     /**
      * Значение масштаба.
      * @param {number} value
@@ -37,9 +32,9 @@ class StaticImageViewer
         this.#restoreCenterPoint(centerPoint);
     }
 
-    static get maxZoom()
+    static get zoom()
     {
-        return this.#maxZoom;
+        return this.#zoom;
     }
 
     /**
@@ -53,9 +48,9 @@ class StaticImageViewer
         this.updateZoom();
     }
 
-    static get zoomMode()
+    static get maxZoom()
     {
-        return this.#zoomMode;
+        return this.#maxZoom;
     }
 
     /**
@@ -69,6 +64,11 @@ class StaticImageViewer
         this.#zoomMode = value;
         if (this.#zoomMode != "manual")
             this.#fitByCurrentMode();
+    }
+
+    static get zoomMode()
+    {
+        return this.#zoomMode;
     }
 
 
