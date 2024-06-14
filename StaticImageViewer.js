@@ -1,3 +1,8 @@
+/**
+ * Элемент управления для просмотра изображения на странице.
+ * Поддерживает масштабирование и прокрутку с помощью клавиатуры (Numpad: + - / *) и мыши.
+ * @version 2024-06-14
+ */
 class StaticImageViewer
 {
     static #zoom;
@@ -15,6 +20,10 @@ class StaticImageViewer
         return this.#zoom;
     }
 
+    /**
+     * Значение масштаба.
+     * @param {number} value
+     */
     static set zoom(value)
     {
         const centerPoint = this.#saveCenterPoint();
@@ -30,6 +39,10 @@ class StaticImageViewer
         return this.#maxZoom;
     }
 
+    /**
+     * Максимальное значение масштаба.
+     * @param {number} value
+     */
     static set maxZoom(value)
     {
         this.#maxZoom = value;
@@ -42,6 +55,10 @@ class StaticImageViewer
         return this.#zoomMode;
     }
 
+    /**
+     * Режим масштабирования.
+     * @param {string} value
+     */
     static set zoomMode(value)
     {
         if (!["manual", "fitSize", "fitWidth", "fitHeight"].includes(value))
