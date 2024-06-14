@@ -5,6 +5,9 @@
  */
 class StaticImageViewer
 {
+    static #imageViewer;
+    static #image;
+
     static #zoom;
     static #zoomMode = "fitSize";
     static #maxZoom = 10;
@@ -69,8 +72,16 @@ class StaticImageViewer
     }
 
 
-    static enable()
+    /**
+     * Инициализирует управление изображением.
+     * @param {HTMLElement} this.#imageViewer Используемый элемент контейнера, который должен содержать элемент `<img>`.
+     */
+    static enable(imageViewer)
     {
+        this.#imageViewer = imageViewer;
+        const image = this.#image = imageViewer.querySelector("img");
+        if (!image)
+            throw new Error("Указанный контейнер не содержит дочерний тег <img>.");
         this.#scrollbarWidth = this.getScrollbarWidth();
         image.addEventListener("load", () => {
             this.fitSize();
@@ -86,18 +97,18 @@ class StaticImageViewer
     /** Устанавливает масштаб изображения по высоте и ширине контейнера. */
     static fitSize()
     {
-        this.#zoom = Math.min(imageViewer.offsetWidth / image.naturalWidth, imageViewer.offsetHeight / image.naturalHeight);
+        this.#zoom = Math.min(this.#imageViewer.offsetWidth / this.#image.naturalWidth, this.#imageViewer.offsetHeight / this.#image.naturalHeight);
         this.updateZoom();
     }
 
     /** Устанавливает масштаб изображения по ширине контейнера. */
     static fitWidth()
     {
-        this.#zoom = imageViewer.offsetWidth / image.naturalWidth;
-        if (image.naturalHeight * this.#zoom > imageViewer.offsetHeight) {
-            this.#zoom -= this.#scrollbarWidth / image.naturalWidth;
-            if (image.naturalHeight * this.#zoom < imageViewer.offsetHeight)
-                this.#zoom = imageViewer.offsetHeight / image.naturalHeight;
+        this.#zoom = this.#imageViewer.offsetWidth / this.#image.naturalWidth;
+        if (this.#image.naturalHeight * this.#zoom > this.#imageViewer.offsetHeight) {
+            this.#zoom -= this.#scrollbarWidth / this.#image.naturalWidth;
+            if (this.#image.naturalHeight * this.#zoom < this.#imageViewer.offsetHeight)
+                this.#zoom = this.#imageViewer.offsetHeight / this.#image.naturalHeight;
         }
         this.updateZoom();
     }
@@ -105,11 +116,11 @@ class StaticImageViewer
     /** Устанавливает масштаб изображения по высоте контейнера. */
     static fitHeight()
     {
-        this.#zoom = imageViewer.offsetHeight / image.naturalHeight;
-        if (image.naturalWidth * this.#zoom > imageViewer.offsetWidth) {
-            this.#zoom -= this.#scrollbarWidth / image.naturalHeight;
-            if (image.naturalWidth * this.#zoom < imageViewer.offsetWidth)
-                this.#zoom = imageViewer.offsetWidth / image.naturalWidth;
+        this.#zoom = this.#imageViewer.offsetHeight / this.#image.naturalHeight;
+        if (this.#image.naturalWidth * this.#zoom > this.#imageViewer.offsetWidth) {
+            this.#zoom -= this.#scrollbarWidth / this.#image.naturalHeight;
+            if (this.#image.naturalWidth * this.#zoom < this.#imageViewer.offsetWidth)
+                this.#zoom = this.#imageViewer.offsetWidth / this.#image.naturalWidth;
         }
         this.updateZoom();
     }
@@ -146,10 +157,10 @@ class StaticImageViewer
     /** Обновляет размер изображения в соответствии с текущим значением масштаба. */
     static updateZoom()
     {
-        image.style.width = image.naturalWidth * this.#zoom + "px";
-        image.style.height = image.naturalHeight * this.#zoom + "px";
-           imageViewer.classList.toggle("centerHor", image.width < imageViewer.offsetWidth);
-           imageViewer.classList.toggle("centerVert", image.height < imageViewer.offsetHeight);
+        this.#image.style.width = this.#image.naturalWidth * this.#zoom + "px";
+        this.#image.style.height = this.#image.naturalHeight * this.#zoom + "px";
+           this.#imageViewer.classList.toggle("centerHor", this.#image.width < this.#imageViewer.offsetWidth);
+           this.#imageViewer.classList.toggle("centerVert", this.#image.height < this.#imageViewer.offsetHeight);
         this.#updateCursor();
     }
 
@@ -158,19 +169,19 @@ class StaticImageViewer
     {
         if (this.#zoom > this.#maxZoom)
             this.#zoom = this.#maxZoom;
-        else if (this.#zoom < 1 && (image.naturalWidth * this.#zoom < 100 || image.naturalHeight * this.#zoom < 100))
-            this.#zoom = Math.min(1, 100 / Math.min(image.naturalWidth, image.naturalHeight));
+        else if (this.#zoom < 1 && (this.#image.naturalWidth * this.#zoom < 100 || this.#image.naturalHeight * this.#zoom < 100))
+            this.#zoom = Math.min(1, 100 / Math.min(this.#image.naturalWidth, this.#image.naturalHeight));
     }
 
     /** Сохраняет в объект координату точки изображения, которая в данный момент отображается по центру. */
     static #saveCenterPoint()
     {
-        let centerX = image.naturalWidth * this.#zoom > imageViewer.offsetWidth
-            ? (imageViewer.scrollLeft + imageViewer.clientWidth / 2) / this.#zoom
-            : image.naturalWidth / 2;
-        let centerY = image.naturalHeight * this.#zoom > imageViewer.offsetHeight
-            ? (imageViewer.scrollTop + imageViewer.clientHeight / 2) / this.#zoom
-            : image.naturalHeight / 2;
+        let centerX = this.#image.naturalWidth * this.#zoom > this.#imageViewer.offsetWidth
+            ? (this.#imageViewer.scrollLeft + this.#imageViewer.clientWidth / 2) / this.#zoom
+            : this.#image.naturalWidth / 2;
+        let centerY = this.#image.naturalHeight * this.#zoom > this.#imageViewer.offsetHeight
+            ? (this.#imageViewer.scrollTop + this.#imageViewer.clientHeight / 2) / this.#zoom
+            : this.#image.naturalHeight / 2;
         //debugger;
         return { x : centerX, y : centerY };
     }
@@ -178,16 +189,16 @@ class StaticImageViewer
     /** Устанавливает состояние прокрутки таким образом, чтобы указанная точка изображения находилась в центре видимой области. */
     static #restoreCenterPoint(point)
     {
-        if (image.width > imageViewer.offsetWidth)
-            imageViewer.scrollLeft = point.x * this.#zoom - imageViewer.clientWidth / 2;
-        if (image.height > imageViewer.offsetHeight)
-            imageViewer.scrollTop = point.y * this.#zoom - imageViewer.clientHeight / 2;
+        if (this.#image.width > this.#imageViewer.offsetWidth)
+            this.#imageViewer.scrollLeft = point.x * this.#zoom - this.#imageViewer.clientWidth / 2;
+        if (this.#image.height > this.#imageViewer.offsetHeight)
+            this.#imageViewer.scrollTop = point.y * this.#zoom - this.#imageViewer.clientHeight / 2;
     }
 
     /** Обновляет курсор в зависимости от возможности и активности прокрутки изображения (стрелка, рука или зажатая рука).  */
     static #updateCursor()
     {
-        image.style.cursor = image.width <= imageViewer.offsetWidth && image.height <= imageViewer.offsetHeight
+        this.#image.style.cursor = this.#image.width <= this.#imageViewer.offsetWidth && this.#image.height <= this.#imageViewer.offsetHeight
             ? "default"
             : this.#mouseCatchInfo ? "grabbing" : "grab";
     }
@@ -223,7 +234,7 @@ class StaticImageViewer
 
     static #handleMouseDown(e)
     {
-        this.#mouseCatchInfo = { mouseX : e.screenX, mouseY : e.screenY, scrollX : imageViewer.scrollLeft , scrollY : imageViewer.scrollTop};
+        this.#mouseCatchInfo = { mouseX : e.screenX, mouseY : e.screenY, scrollX : this.#imageViewer.scrollLeft , scrollY : this.#imageViewer.scrollTop};
         //console.log(viewer.scrollLeft);
         this.#updateCursor();
         e.preventDefault();
@@ -235,8 +246,8 @@ class StaticImageViewer
         //console.log(e);
         const dx = e.screenX - this.#mouseCatchInfo.mouseX;
         const dy = e.screenY - this.#mouseCatchInfo.mouseY;
-        imageViewer.scrollLeft = this.#mouseCatchInfo.scrollX - dx;
-        imageViewer.scrollTop = this.#mouseCatchInfo.scrollY - dy;
+        this.#imageViewer.scrollLeft = this.#mouseCatchInfo.scrollX - dx;
+        this.#imageViewer.scrollTop = this.#mouseCatchInfo.scrollY - dy;
         //console.log(dx + ':' + dy);
         return false;
     }
