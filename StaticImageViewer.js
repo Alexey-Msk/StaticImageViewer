@@ -17,10 +17,12 @@ class StaticImageViewer
 
     static set zoom(value)
     {
-        this.#zoom = value;
+        const centerPoint = this.#saveCenterPoint();
         this.#zoomMode = "manual";
+        this.#zoom = value;
         this.#correctZoom();
         this.updateZoom();
+        this.#restoreCenterPoint(centerPoint);
     }
 
     static get maxZoom()
@@ -124,20 +126,6 @@ class StaticImageViewer
         return scrollbarWidth;
     }
 
-    /**
-     * Изменяет масштаб изображения с сохранением центральной точки.
-     * @param {number} newValue Новое значение масштаба.
-     */
-    static changeZoom(newValue)
-    {
-        const centerPoint = this.#saveCenterPoint();
-        this.#zoomMode = "manual";
-        this.#zoom = newValue;
-        this.#correctZoom()
-        this.updateZoom();
-        this.#restoreCenterPoint(centerPoint);
-    }
-
     /** Обновляет размер изображения в соответствии с текущим значением масштаба. */
     static updateZoom()
     {
@@ -196,13 +184,13 @@ class StaticImageViewer
         switch (e.code)
         {
             case 'NumpadAdd':
-                this.changeZoom(this.#zoom * this.zoomModifier);
+                this.zoom *= this.zoomModifier;
                 break;
             case 'NumpadSubtract':
-                this.changeZoom(this.#zoom /  this.zoomModifier);
+                this.zoom /=  this.zoomModifier;
                 break;
             case 'NumpadDivide':
-                this.changeZoom(1);
+                this.zoom = 1;
                 break;
             case 'NumpadMultiply':
                 this.zoomMode = "fitSize";
@@ -212,7 +200,7 @@ class StaticImageViewer
 
     static #handleWheel(e)
     {
-        this.changeZoom(e.deltaY >= 0 ? this.#zoom / this.zoomModifier : this.#zoom * this.zoomModifier);
+        this.zoom = e.deltaY >= 0 ? this.#zoom / this.zoomModifier : this.#zoom * this.zoomModifier;
         e.preventDefault();
     }
 
