@@ -63,7 +63,7 @@ class StaticImageViewer
             image.addEventListener("mousedown", e => this.#handleMouseDown(e));
             image.addEventListener("mousemove", e => this.#handleMouseMove(e));
             image.onmouseup = image.onmouseleave = () => { this.#mouseCatchInfo = null; this.#updateCursor(); };
-        });
+        }, { once: true });
     }
 
     /** Устанавливает масштаб изображения по высоте и ширине контейнера. */
